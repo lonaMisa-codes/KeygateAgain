@@ -1,0 +1,12 @@
+node_modules/
+.env
+*.db
+*.db-journal
+keys.db
+.DS_Store
+*.log
+dist/
+build/
+.vscode/
+.idea/
+*.zip
