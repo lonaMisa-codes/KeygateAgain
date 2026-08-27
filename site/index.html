@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KeyGate — Free Key</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0a0a0a] text-white min-h-screen flex items-center justify-center p-4">
+  <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md">
+    <h1 class="text-xl font-bold text-center">Get Free Access Key</h1>
+    <p class="text-zinc-400 text-sm text-center mt-1" id="status">Complete the steps</p>
+
+    <div class="mt-6 space-y-3" id="steps">
+      <button id="btn1" onclick="step(1)" class="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition">
+        Step 1 — Visit Link
+      </button>
+      <button id="btn2" onclick="step(2)" class="w-full bg-zinc-800 font-semibold py-3 rounded-xl hidden hover:bg-zinc-700 transition">
+        Step 2 — Visit Link
+      </button>
+      <button id="btnGen" onclick="generate()" class="w-full bg-blue-600 font-semibold py-3 rounded-xl hidden hover:bg-blue-500 transition">
+        Generate 24h Key
+      </button>
+    </div>
+
+    <div id="result" class="mt-5 hidden">
+      <div class="bg-black border border-zinc-700 rounded-xl p-4 text-center">
+        <p class="text-xs text-zinc-500 mb-1">Your key (1 device only)</p>
+        <p id="keyDisplay" class="font-mono text-sm break-all select-all"></p>
+      </div>
+      <p class="text-xs text-zinc-500 mt-3 text-center">Do not share. Locked to first device that uses it.</p>
+    </div>
+  </div>
+
+  <script>
+    // ========== EDIT THESE ==========
+    const API_URL = "http://YOUR_VPS_IP:3000";          // your API address
+    const FREE_SECRET = "";                             // same as FREE_KEY_SECRET in .env (or leave empty)
+    const LINK1 = "https://work.ink/your-link-1";
+    const LINK2 = "https://work.ink/your-link-2";
+    // ================================
+
+    let progress = 0;
+
+    function step(n) {
+      if (n === 1) {
+        window.open(LINK1, "_blank");
+        progress = 1;
+        btn1.classList.add("hidden");
+        btn2.classList.remove("hidden");
+        status.innerText = "Step 2/2";
+      } else if (n === 2) {
+        window.open(LINK2, "_blank");
+        progress = 2;
+        btn2.classList.add("hidden");
+        btnGen.classList.remove("hidden");
+        status.innerText = "Ready — generate key";
+      }
+    }
+
+    async function generate() {
+      if (progress < 2) return;
+      btnGen.disabled = true;
+      btnGen.innerText = "Generating...";
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (FREE_SECRET) headers["x-free-secret"] = FREE_SECRET;
+
+        const res = await fetch(API_URL + "/api/free", {
+          method: "POST",
+          headers,
+          body: "{}"
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          keyDisplay.innerText = data.code;
+          result.classList.remove("hidden");
+          steps.classList.add("hidden");
+          status.innerText = "Key ready";
+        } else {
+          alert(data.error || "Failed");
+          btnGen.disabled = false;
+          btnGen.innerText = "Generate 24h Key";
+        }
+      } catch {
+        alert("Connection error");
+        btnGen.disabled = false;
+        btnGen.innerText = "Generate 24h Key";
+      }
+    }
+  </script>
+</body>
+</html>
